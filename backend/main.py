@@ -1,15 +1,17 @@
-from fastapi import FastAPI, Depends, HTTPException
-from fastapi.middleware.cors import CORSMiddleware # <--- NEW IMPORT
-from fastapi.responses import StreamingResponse  # <--- NEW
+from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
-from database import engine, get_db
 from sqlalchemy.orm import Session
-import models
-import ai_service
-from docx import Document  # <--- NEW (Library to make Word files)
-from io import BytesIO     # <--- NEW (Handles file streams in memory)
-from pptx import Presentation  # <--- NEW
+from docx import Document
+from pptx import Presentation
+from io import BytesIO
 
+# Custom Imports
+import models
+import security  # <--- NEW
+from database import engine, get_db
+import ai_service
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -24,6 +26,19 @@ app.add_middleware(
     allow_headers=["*"],
 )
 # ----------------------------------------------
+# --- DATA SHAPES (Pydantic Models) ---
+class UserCreate(BaseModel):
+    email: str
+    password: str
+
+class UserLogin(BaseModel):
+    email: str
+    password: str
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
 
 class GenerateRequest(BaseModel):
     topic: str
@@ -99,3 +114,39 @@ def export_pptx(request: ExportRequest):
         media_type="application/vnd.openxmlformats-officedocument.presentationml.presentation",
         headers={"Content-Disposition": "attachment; filename=generated_pres.pptx"}
     )
+
+# --- AUTHENTICATION ENDPOINTS ---
+
+@app.post("/register", status_code=status.HTTP_201_CREATED)
+def register_user(user: UserCreate, db: Session = Depends(get_db)):
+    # 1. Check if email already exists
+    existing_user = db.query(models.User).filter(models.User.email == user.email).first()
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    
+    # 2. Hash the password (Security!)
+    hashed_pwd = security.get_password_hash(user.password)
+    
+    # 3. Create new User in Database
+    new_user = models.User(email=user.email, password=hashed_pwd)
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+    
+    return {"message": "User created successfully", "id": new_user.id}
+
+@app.post("/login", response_model=Token)
+def login_for_access_token(user: UserLogin, db: Session = Depends(get_db)):
+    # 1. Find user by email
+    db_user = db.query(models.User).filter(models.User.email == user.email).first()
+    if not db_user:
+        raise HTTPException(status_code=400, detail="Incorrect email or password")
+    
+    # 2. Check if password matches
+    if not security.verify_password(user.password, db_user.password):
+        raise HTTPException(status_code=400, detail="Incorrect email or password")
+    
+    # 3. Generate the "ID Card" (Token)
+    access_token = security.create_access_token(data={"sub": db_user.email})
+    
+    return {"access_token": access_token, "token_type": "bearer"}
