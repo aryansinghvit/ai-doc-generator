@@ -59,3 +59,16 @@ button:disabled {
 .ppt-btn:hover {
   background-color: hsl(33, 74%, 51%);
 }
+
+.editor-textarea {
+  width: 100%;
+  height: 300px; /* Tall enough for a full page */
+  padding: 15px;
+  font-size: 16px;
+  font-family: 'Times New Roman', Times, serif; /* Looks like a Word Doc */
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  resize: vertical; /* Allows dragging the corner */
+  line-height: 1.5;
+  box-sizing: border-box;
+}

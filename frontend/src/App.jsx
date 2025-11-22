@@ -87,8 +87,12 @@ function App() {
       {result && (
         <div className="result-section">
           <div className="result-box">
-            <h3>AI Output:</h3>
-            <p>{result}</p>
+            <h3>AI Output (You can edit this):</h3>
+            <textarea 
+              className="editor-textarea"
+              value={result}
+              onChange={(e) => setResult(e.target.value)} // This saves your manual edits
+            />
           </div>
           
           <div style={{ marginTop: '20px' }}>
