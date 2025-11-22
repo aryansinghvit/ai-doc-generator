@@ -1,0 +1,61 @@
+.app-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+  font-family: Arial, sans-serif;
+  text-align: center;
+}
+
+.input-box {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  justify-content: center;
+}
+
+input {
+  padding: 10px;
+  font-size: 16px;
+  width: 60%;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+button {
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  border-radius: 4px;
+}
+
+button:disabled {
+  background-color: #ccc;
+}
+
+.result-box {
+  background-color: #f9f9f9;
+  padding: 20px;
+  border-radius: 8px;
+  text-align: left;
+  white-space: pre-wrap; /* Keeps paragraphs correctly */
+  border: 1px solid #ddd;
+  color: black;
+}
+
+.download-btn {
+  margin-top: 15px;
+  background-color: #28a745; /* Green */
+}
+.download-btn:hover {
+  background-color: hsl(133, 48%, 56%);
+}
+
+.ppt-btn {
+  background-color: #d24726; /* PowerPoint Orange */
+}
+.ppt-btn:hover {
+  background-color: hsl(33, 74%, 51%);
+}

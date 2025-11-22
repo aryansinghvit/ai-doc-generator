@@ -1,0 +1,16 @@
+# Ignore Python Logic Junk
+backend/venv/
+backend/__pycache__/
+*.pyc
+
+# Ignore Frontend Junk
+frontend/node_modules/
+frontend/dist/
+
+# Ignore Secrets (CRITICAL!)
+.env
+backend/.env
+
+# Ignore Database file (if using SQLite locally)
+*.db
+*.sqlite3
