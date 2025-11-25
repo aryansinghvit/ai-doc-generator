@@ -1,6 +1,6 @@
 import { useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom"; // Added Link for navigation
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -8,45 +8,40 @@ function Login() {
   const navigate = useNavigate();
 
   const handleLogin = async () => {
-    // Form Data usually requires a special format for tokens, 
-    // but since we used JSON in backend, we send JSON here.
     try {
       const response = await axios.post("http://127.0.0.1:8000/login", {
         email: email,
         password: password,
       });
-      
-      // SAVE THE KEY (Token) to the browser
       localStorage.setItem("token", response.data.access_token);
-      
-      // Go to the Dashboard
       navigate("/dashboard");
-      
     } catch (error) {
-      alert("Login Failed! Check email/password.");
+      alert("Login Failed! Please check your email and password.");
     }
   };
 
   return (
-    <div className="app-container">
-      <h2>Login</h2>
-      <div className="input-box" style={{ flexDirection: "column" }}>
+    <div className="auth-wrapper">
+      <div className="auth-card">
+        <h2>Welcome Back</h2>
+        
         <input
-          placeholder="Email"
+          type="email"
+          placeholder="Enter your email"
           onChange={(e) => setEmail(e.target.value)}
-          style={{ marginBottom: "10px", width: "100%" }}
         />
         <input
           type="password"
-          placeholder="Password"
+          placeholder="Enter your password"
           onChange={(e) => setPassword(e.target.value)}
-          style={{ marginBottom: "10px", width: "100%" }}
         />
-        <button onClick={handleLogin}>Login</button>
         
-        <p style={{marginTop: "10px"}}>
-          Don't have an account? <a href="/register">Register here</a>
-        </p>
+        <button onClick={handleLogin}>Log In</button>
+        
+        <div className="auth-link">
+          Don't have an account? 
+          <Link to="/register">Create one here</Link>
+        </div>
       </div>
     </div>
   );

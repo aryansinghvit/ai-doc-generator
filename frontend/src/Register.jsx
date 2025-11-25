@@ -1,11 +1,11 @@
 import { useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom"; // Added Link
 
 function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const navigate = useNavigate(); // Used to move to another page
+  const navigate = useNavigate();
 
   const handleRegister = async () => {
     try {
@@ -14,28 +14,34 @@ function Register() {
         password: password,
       });
       alert("Registration Successful! Please Login.");
-      navigate("/"); // Go to Login Page
+      navigate("/"); // Go back to Login
     } catch (error) {
-      alert("Registration failed. Email might be taken.");
+      alert("Registration failed. Email might already be taken.");
     }
   };
 
   return (
-    <div className="app-container">
-      <h2>Create an Account</h2>
-      <div className="input-box" style={{ flexDirection: "column" }}>
+    <div className="auth-wrapper">
+      <div className="auth-card">
+        <h2>Create Account</h2>
+        
         <input
-          placeholder="Email"
+          type="email"
+          placeholder="Enter your email"
           onChange={(e) => setEmail(e.target.value)}
-          style={{ marginBottom: "10px", width: "100%" }}
         />
         <input
           type="password"
-          placeholder="Password"
+          placeholder="Choose a password"
           onChange={(e) => setPassword(e.target.value)}
-          style={{ marginBottom: "10px", width: "100%" }}
         />
-        <button onClick={handleRegister}>Register</button>
+        
+        <button onClick={handleRegister}>Sign Up</button>
+        
+        <div className="auth-link">
+          Already have an account? 
+          <Link to="/">Log in here</Link>
+        </div>
       </div>
     </div>
   );

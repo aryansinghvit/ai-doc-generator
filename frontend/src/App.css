@@ -1,219 +1,163 @@
-/* --- GLOBAL RESET & THEME --- */
-body {
-  margin: 0;
-  padding: 0;
-  background-color: #0f172a; /* Deep Blue-Black Background */
-  color: #e2e8f0;
-  font-family: 'Inter', 'Segoe UI', sans-serif;
-  -webkit-font-smoothing: antialiased;
-}
-
-.app-wrapper {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
-
-/* --- 1. NAVBAR --- */
-.navbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 2rem;
-  background-color: #1e293b;
-  border-bottom: 1px solid #334155;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-}
-
-.nav-brand {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #ffffff;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.beta-tag {
-  font-size: 0.75rem;
-  background-color: #3b82f6;
-  padding: 2px 6px;
-  border-radius: 4px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-.logout-btn {
-  background: transparent;
-  border: 1px solid #475569;
-  color: #94a3b8;
-  padding: 8px 16px;
-  font-size: 14px;
-}
-
-.logout-btn:hover {
-  border-color: #ef4444;
-  color: #ef4444;
-  background: rgba(239, 68, 68, 0.1);
-}
-
-/* --- 2. LAYOUT CONTAINER --- */
-.app-container {
-  max-width: 1000px;
-  margin: 40px auto;
-  padding: 0 20px;
-  width: 100%;
+/* --- 1. GLOBAL RESET --- */
+* {
   box-sizing: border-box;
 }
 
-/* --- 3. CARDS (The Boxes) --- */
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #0f172a; /* Dark Background */
+  color: #e2e8f0;
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+  overflow: hidden; /* CRITICAL: Stops the main window from scrolling */
+}
+
+#root {
+  width: 100%;
+  height: 100%;
+}
+
+.app-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100vh; /* Fill exact screen height */
+  width: 100vw;  /* Fill exact screen width */
+}
+
+/* --- 2. NAVBAR --- */
+.navbar {
+  flex-shrink: 0; /* Never shrink */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 2rem;
+  background-color: #1e293b;
+  border-bottom: 1px solid #334155;
+  height: 70px; /* Fixed height */
+}
+
+.nav-brand { font-size: 1.5rem; font-weight: 700; color: #fff; display: flex; align-items: center; }
+.beta-tag { font-size: 0.75rem; background-color: #3b82f6; padding: 2px 6px; border-radius: 4px; margin-left: 10px; }
+.logout-btn { background: transparent; border: 1px solid #475569; color: #94a3b8; padding: 6px 14px; cursor: pointer; border-radius: 4px; }
+.logout-btn:hover { color: #fff; border-color: #fff; }
+
+/* --- 3. MAIN DASHBOARD LAYOUT (The Split) --- */
+.main-layout {
+  display: flex;
+  flex: 1; /* Take all remaining vertical space below navbar */
+  overflow: hidden; /* Container doesn't scroll, children do */
+  position: relative;
+  width: 100%;
+}
+
+/* LEFT SIDE: WORKSPACE (The Scrollable Area) */
+.workspace-area {
+  flex: 1; /* Auto-expand to fill width */
+  padding: 2rem;
+  overflow-y: auto; /* CRITICAL: Allows scrolling ONLY here */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* RIGHT SIDE: SIDEBAR */
+.history-sidebar {
+  width: 300px; /* Fixed width */
+  flex-shrink: 0; /* Never shrink */
+  background-color: #162032;
+  border-left: 1px solid #334155;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow-y: auto; /* Allow sidebar to scroll if list is long */
+}
+
+/* --- 4. CARDS & INPUTS --- */
 .dashboard-card {
-  background-color: #1e293b; /* Card Background */
+  background-color: #1e293b;
   border: 1px solid #334155;
   border-radius: 12px;
   padding: 2rem;
   margin-bottom: 2rem;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-}
-
-/* --- 4. HERO SECTION --- */
-.hero-card {
-  text-align: center;
-}
-
-.hero-card h1 {
-  margin: 0;
-  font-size: 2.5rem;
-  background: linear-gradient(to right, #60a5fa, #a78bfa);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.subtitle {
-  color: #94a3b8;
-  margin-bottom: 2rem;
-}
-
-.input-group {
-  display: flex;
-  gap: 10px;
-  max-width: 600px;
-  margin: 0 auto;
-}
-
-input {
-  flex: 1;
-  padding: 14px 20px;
-  border-radius: 8px;
-  border: 1px solid #475569;
-  background-color: #0f172a;
-  color: white;
-  font-size: 16px;
-  outline: none;
-  transition: border-color 0.2s;
-}
-
-input:focus {
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
-}
-
-/* --- 5. BUTTONS --- */
-.generate-btn {
-  background-color: #3b82f6;
-  color: white;
-  font-weight: 600;
-  padding: 0 25px;
-  border-radius: 8px;
-  transition: transform 0.1s;
-}
-
-.generate-btn:hover {
-  background-color: #2563eb;
-  transform: translateY(-1px);
-}
-
-.toggle-edit-btn {
-  background-color: #334155;
-  font-size: 14px;
-  padding: 8px 12px;
-}
-
-/* --- 6. RESULT AREA --- */
-.result-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-  border-bottom: 1px solid #334155;
-  padding-bottom: 1rem;
-}
-
-.markdown-preview {
-  background-color: #f8fafc; /* White paper look */
-  color: #1e293b; /* Dark text */
-  padding: 40px;
-  border-radius: 8px;
-  min-height: 400px;
-  font-family: 'Georgia', serif; /* Document Font */
-  line-height: 1.8;
-}
-
-.markdown-preview h1, .markdown-preview h2 {
-  color: #0f172a;
-  border-bottom: 2px solid #e2e8f0;
-  padding-bottom: 10px;
-}
-
-.editor-textarea {
   width: 100%;
-  height: 500px;
-  padding: 20px;
+  max-width: 850px; /* Limits width so it doesn't stretch too wide */
+}
+
+.hero-card { text-align: center; margin-top: 20px; }
+.hero-card h1 { font-size: 2.2rem; margin-top: 0; background: linear-gradient(to right, #60a5fa, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.subtitle { color: #94a3b8; margin-bottom: 2rem; }
+
+.input-group { display: flex; gap: 10px; width: 100%; }
+input { flex: 1; padding: 14px; border-radius: 8px; border: 1px solid #475569; background: #0f172a; color: white; }
+input:focus { border-color: #3b82f6; outline: none; }
+
+.generate-btn { background-color: #3b82f6; color: white; padding: 0 25px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; white-space: nowrap; }
+.generate-btn:hover { background-color: #2563eb; }
+
+/* --- 5. RESULTS --- */
+.result-header { display: flex; justify-content: space-between; margin-bottom: 1rem; border-bottom: 1px solid #334155; padding-bottom: 10px; }
+.toggle-edit-btn { background: #334155; color: #e2e8f0; border: none; padding: 5px 12px; border-radius: 4px; cursor: pointer; }
+
+.markdown-preview { background: #f8fafc; color: #1e293b; padding: 40px; border-radius: 8px; min-height: 400px; font-family: 'Georgia', serif; line-height: 1.6; text-align: left; }
+.editor-textarea { width: 100%; height: 500px; padding: 20px; background: #0f172a; color: #e2e8f0; border: 1px solid #3b82f6; border-radius: 8px; font-family: monospace; resize: vertical; }
+
+.action-bar { display: flex; gap: 10px; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid #334155; flex-wrap: wrap; }
+.action-btn { flex: 1; padding: 10px; border-radius: 6px; border: none; cursor: pointer; color: white; font-weight: 600; min-width: 100px; }
+.save { background: #059669; }
+.pdf { background: #dc2626; }
+.doc { background: #2563eb; }
+.ppt { background: #d97706; }
+.divider { width: 1px; background: #475569; margin: 0 5px; }
+
+/* --- 6. SIDEBAR LIST --- */
+.history-sidebar h3 { padding: 1.5rem; margin: 0; color: #94a3b8; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #334155; flex-shrink: 0; }
+.project-list { flex: 1; overflow-y: auto; padding: 10px; }
+
+.project-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; background-color: #1e293b; margin-bottom: 8px; border-radius: 6px; cursor: pointer; transition: all 0.2s; border: 1px solid transparent; }
+.project-item:hover { background-color: #283548; border-color: #3b82f6; }
+.project-item.active { background-color: #1e3a8a; border-color: #3b82f6; }
+.project-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 14px; color: #e2e8f0; max-width: 180px; }
+.no-projects { padding: 20px; text-align: center; color: #64748b; font-style: italic; font-size: 14px; }
+
+.menu-container { position: relative; }
+.dots-btn { background: transparent; border: none; color: #94a3b8; font-size: 18px; cursor: pointer; padding: 0 5px; line-height: 1; }
+.dots-btn:hover { color: white; }
+.dropdown-menu { position: absolute; right: 0; top: 25px; background-color: #0f172a; border: 1px solid #475569; border-radius: 4px; z-index: 100; width: 120px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+.delete-option { width: 100%; background: transparent; border: none; color: #ef4444; padding: 10px; text-align: left; cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 5px; }
+.delete-option:hover { background-color: rgba(239, 68, 68, 0.1); }
+
+/* --- 7. AUTH PAGES (Login/Register) --- */
+/* This uses 'fixed' to center itself ON TOP of the normal layout, ensuring perfect centering */
+.auth-wrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
   background-color: #0f172a;
-  color: #e2e8f0;
-  border: 1px solid #3b82f6;
-  border-radius: 8px;
-  font-family: 'Courier New', monospace;
-  font-size: 16px;
-  line-height: 1.6;
-  resize: vertical;
-}
-
-/* --- 7. ACTION BAR (Download Buttons) --- */
-.action-bar {
-  display: flex;
-  gap: 10px;
-  margin-top: 2rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid #334155;
-  align-items: center;
-}
-
-.divider {
-  width: 1px;
-  height: 25px;
-  background-color: #475569;
-  margin: 0 10px;
-}
-
-.action-btn {
-  flex: 1;
-  padding: 12px;
-  border-radius: 6px;
-  font-weight: 600;
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 8px;
+  z-index: 9999; /* Always on top */
 }
 
-.save { background-color: #059669; }      /* Green */
-.pdf  { background-color: #dc2626; }      /* Red */
-.doc  { background-color: #2563eb; }      /* Blue */
-.ppt  { background-color: #d97706; }      /* Orange */
-
-.action-btn:hover {
-  filter: brightness(110%);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+.auth-card {
+  background-color: #1e293b;
+  padding: 3rem 2.5rem;
+  border-radius: 16px;
+  border: 1px solid #334155;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+  width: 100%;
+  max-width: 420px;
+  text-align: center;
 }
+
+.auth-card h2 { margin-top: 0; margin-bottom: 2rem; color: #fff; font-size: 2rem; font-weight: 700; }
+.auth-card input { width: 100%; margin-bottom: 1rem; background-color: #0f172a; border: 1px solid #475569; padding: 12px; border-radius: 6px; color: white; }
+.auth-card button { width: 100%; margin-top: 1rem; padding: 14px; font-size: 16px; background-color: #3b82f6; border: none; color: white; border-radius: 6px; cursor: pointer; }
+.auth-card button:hover { background-color: #2563eb; }
+.auth-link { margin-top: 1.5rem; font-size: 0.9rem; color: #94a3b8; }
+.auth-link a { color: #60a5fa; text-decoration: none; font-weight: 600; margin-left: 5px; }
+.auth-link a:hover { text-decoration: underline; color: #93c5fd; }

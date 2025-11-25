@@ -254,3 +254,40 @@ def save_project(
     db.commit()
 
     return {"message": "Project Saved Successfully!", "project_id": new_proj.id}
+
+
+# --- HISTORY & DELETE ENDPOINTS ---
+
+@app.get("/projects")
+def get_user_projects(db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+    # 1. Get all projects for this user, ordered by newest first
+    projects = db.query(models.Project).filter(models.Project.user_id == current_user.id).order_by(models.Project.created_at.desc()).all()
+    
+    # 2. Format the data to send back (including the content!)
+    results = []
+    for p in projects:
+        # Get the main content (first section)
+        content_section = db.query(models.DocumentSection).filter(models.DocumentSection.project_id == p.id).first()
+        results.append({
+            "id": p.id,
+            "title": p.title,
+            "created_at": p.created_at,
+            "content": content_section.content if content_section else ""
+        })
+    return results
+
+@app.delete("/projects/{project_id}")
+def delete_project(project_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+    # 1. Find the project (and make sure it belongs to this user!)
+    project = db.query(models.Project).filter(models.Project.id == project_id, models.Project.user_id == current_user.id).first()
+    
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    
+    # 2. Delete the sections first (to keep database clean)
+    db.query(models.DocumentSection).filter(models.DocumentSection.project_id == project_id).delete()
+    
+    # 3. Delete the project
+    db.delete(project)
+    db.commit()
+    return {"message": "Project deleted"}
