@@ -1,3 +1,6 @@
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter
+from reportlab.lib.utils import simpleSplit
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
@@ -72,7 +75,13 @@ def read_root():
 
 @app.post("/generate")
 def generate_text(request: GenerateRequest):
-    prompt = f"Write a short professional introduction for a document about: {request.topic}"
+    # We changed the prompt to ask for a "detailed comprehensive guide"
+    prompt = (
+        f"Write a detailed and comprehensive document about: '{request.topic}'. "
+        f"Include the history, key features, specifications, and impact. "
+        f"The content should be approximately 300 words long and professionally formatted."
+    )
+    
     generated_text = ai_service.generate_document_content(prompt)
     return {"content": generated_text}
 
@@ -110,6 +119,44 @@ class ProjectSaveRequest(BaseModel):
     title: str
     content: str
     doc_type: str
+
+@app.post("/export/pdf")
+def export_pdf(request: ExportRequest):
+    buffer = BytesIO()
+    c = canvas.Canvas(buffer, pagesize=letter)
+    width, height = letter
+
+    # 1. Add Title
+    c.setFont("Helvetica-Bold", 16)
+    c.drawString(72, height - 50, "AI Generated Document")
+
+    # 2. Add Content (with text wrapping)
+    c.setFont("Helvetica", 12)
+    text_object = c.beginText(72, height - 80)
+
+    # Split long paragraphs into lines that fit the page width
+    # 460 is roughly the width available between margins
+    wrapped_lines = simpleSplit(request.content, "Helvetica", 12, 460)
+
+    for line in wrapped_lines:
+        text_object.textLine(line)
+
+        # If we run out of space on the page, make a new page
+        if text_object.getY() < 50:
+            c.drawText(text_object)
+            c.showPage() # New Page
+            text_object = c.beginText(72, height - 50)
+            text_object.setFont("Helvetica", 12)
+
+    c.drawText(text_object)
+    c.save()
+    buffer.seek(0)
+
+    return StreamingResponse(
+        buffer,
+        media_type="application/pdf",
+        headers={"Content-Disposition": "attachment; filename=generated_doc.pdf"}
+    )
 
 # For PowerPoint export
 

@@ -1,74 +1,219 @@
+/* --- GLOBAL RESET & THEME --- */
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #0f172a; /* Deep Blue-Black Background */
+  color: #e2e8f0;
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.app-wrapper {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* --- 1. NAVBAR --- */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background-color: #1e293b;
+  border-bottom: 1px solid #334155;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.nav-brand {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.beta-tag {
+  font-size: 0.75rem;
+  background-color: #3b82f6;
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.logout-btn {
+  background: transparent;
+  border: 1px solid #475569;
+  color: #94a3b8;
+  padding: 8px 16px;
+  font-size: 14px;
+}
+
+.logout-btn:hover {
+  border-color: #ef4444;
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+}
+
+/* --- 2. LAYOUT CONTAINER --- */
 .app-container {
-  max-width: 800px;
-  margin: 0 auto;
+  max-width: 1000px;
+  margin: 40px auto;
+  padding: 0 20px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* --- 3. CARDS (The Boxes) --- */
+.dashboard-card {
+  background-color: #1e293b; /* Card Background */
+  border: 1px solid #334155;
+  border-radius: 12px;
   padding: 2rem;
-  font-family: Arial, sans-serif;
+  margin-bottom: 2rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+/* --- 4. HERO SECTION --- */
+.hero-card {
   text-align: center;
 }
 
-.input-box {
+.hero-card h1 {
+  margin: 0;
+  font-size: 2.5rem;
+  background: linear-gradient(to right, #60a5fa, #a78bfa);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.subtitle {
+  color: #94a3b8;
+  margin-bottom: 2rem;
+}
+
+.input-group {
   display: flex;
   gap: 10px;
-  margin-bottom: 20px;
-  justify-content: center;
+  max-width: 600px;
+  margin: 0 auto;
 }
 
 input {
-  padding: 10px;
-  font-size: 16px;
-  width: 60%;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
-
-button {
-  padding: 10px 20px;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  cursor: pointer;
-  font-size: 16px;
-  border-radius: 4px;
-}
-
-button:disabled {
-  background-color: #ccc;
-}
-
-.result-box {
-  background-color: #f9f9f9;
-  padding: 20px;
+  flex: 1;
+  padding: 14px 20px;
   border-radius: 8px;
-  text-align: left;
-  white-space: pre-wrap; /* Keeps paragraphs correctly */
-  border: 1px solid #ddd;
-  color: black;
+  border: 1px solid #475569;
+  background-color: #0f172a;
+  color: white;
+  font-size: 16px;
+  outline: none;
+  transition: border-color 0.2s;
 }
 
-.download-btn {
-  margin-top: 15px;
-  background-color: #28a745; /* Green */
-}
-.download-btn:hover {
-  background-color: hsl(133, 48%, 56%);
+input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
 }
 
-.ppt-btn {
-  background-color: #d24726; /* PowerPoint Orange */
+/* --- 5. BUTTONS --- */
+.generate-btn {
+  background-color: #3b82f6;
+  color: white;
+  font-weight: 600;
+  padding: 0 25px;
+  border-radius: 8px;
+  transition: transform 0.1s;
 }
-.ppt-btn:hover {
-  background-color: hsl(33, 74%, 51%);
+
+.generate-btn:hover {
+  background-color: #2563eb;
+  transform: translateY(-1px);
+}
+
+.toggle-edit-btn {
+  background-color: #334155;
+  font-size: 14px;
+  padding: 8px 12px;
+}
+
+/* --- 6. RESULT AREA --- */
+.result-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid #334155;
+  padding-bottom: 1rem;
+}
+
+.markdown-preview {
+  background-color: #f8fafc; /* White paper look */
+  color: #1e293b; /* Dark text */
+  padding: 40px;
+  border-radius: 8px;
+  min-height: 400px;
+  font-family: 'Georgia', serif; /* Document Font */
+  line-height: 1.8;
+}
+
+.markdown-preview h1, .markdown-preview h2 {
+  color: #0f172a;
+  border-bottom: 2px solid #e2e8f0;
+  padding-bottom: 10px;
 }
 
 .editor-textarea {
   width: 100%;
-  height: 300px; /* Tall enough for a full page */
-  padding: 15px;
+  height: 500px;
+  padding: 20px;
+  background-color: #0f172a;
+  color: #e2e8f0;
+  border: 1px solid #3b82f6;
+  border-radius: 8px;
+  font-family: 'Courier New', monospace;
   font-size: 16px;
-  font-family: 'Times New Roman', Times, serif; /* Looks like a Word Doc */
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  resize: vertical; /* Allows dragging the corner */
-  line-height: 1.5;
-  box-sizing: border-box;
+  line-height: 1.6;
+  resize: vertical;
+}
+
+/* --- 7. ACTION BAR (Download Buttons) --- */
+.action-bar {
+  display: flex;
+  gap: 10px;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #334155;
+  align-items: center;
+}
+
+.divider {
+  width: 1px;
+  height: 25px;
+  background-color: #475569;
+  margin: 0 10px;
+}
+
+.action-btn {
+  flex: 1;
+  padding: 12px;
+  border-radius: 6px;
+  font-weight: 600;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+}
+
+.save { background-color: #059669; }      /* Green */
+.pdf  { background-color: #dc2626; }      /* Red */
+.doc  { background-color: #2563eb; }      /* Blue */
+.ppt  { background-color: #d97706; }      /* Orange */
+
+.action-btn:hover {
+  filter: brightness(110%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0,0,0,0.2);
 }
