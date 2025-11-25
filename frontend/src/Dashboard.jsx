@@ -27,7 +27,32 @@ function Dashboard() {
     }
   }
 
-  // --- 3. DOWNLOAD WORD FUNCTION ---
+  // --- 3. SAVE PROJECT FUNCTION (NEW) ---
+  const handleSave = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("You must be logged in to save!");
+      return;
+    }
+
+    try {
+      await axios.post("http://127.0.0.1:8000/projects", {
+        title: topic,      // We use the topic as the project title
+        content: result,   // The text to save
+        doc_type: "docx"   // Defaulting to docx for now
+      }, {
+        headers: {
+          Authorization: `Bearer ${token}` // Sends your ID card
+        }
+      });
+      alert("Project Saved to Database!");
+    } catch (error) {
+      console.error("Save failed:", error);
+      alert("Failed to save project.");
+    }
+  }
+
+  // --- 4. DOWNLOAD WORD FUNCTION ---
   const handleDownload = async () => {
     try {
       const response = await axios.post("http://127.0.0.1:8000/export/docx", {
@@ -47,7 +72,7 @@ function Dashboard() {
     }
   }
 
-  // --- 4. DOWNLOAD PPT FUNCTION ---
+  // --- 5. DOWNLOAD PPT FUNCTION ---
   const handleDownloadPPT = async () => {
     try {
       const response = await axios.post("http://127.0.0.1:8000/export/pptx", {
@@ -67,7 +92,7 @@ function Dashboard() {
     }
   }
 
-  // --- 5. THE WEBSITE DISPLAY ---
+  // --- 6. THE WEBSITE DISPLAY ---
   return (
     <div className="app-container">
       <h1>AI Document Generator</h1>
@@ -88,18 +113,30 @@ function Dashboard() {
         <div className="result-section">
           <div className="result-box">
             <h3>AI Output (You can edit this):</h3>
+            {/* The Interactive Editor */}
             <textarea 
               className="editor-textarea"
               value={result}
-              onChange={(e) => setResult(e.target.value)} // This saves your manual edits
+              onChange={(e) => setResult(e.target.value)} 
             />
           </div>
           
           <div style={{ marginTop: '20px' }}>
+            {/* SAVE BUTTON */}
+            <button 
+              className="download-btn" 
+              onClick={handleSave} 
+              style={{ marginRight: '10px', backgroundColor: '#6c757d' }}
+            >
+              Save Project
+            </button>
+
+            {/* WORD BUTTON */}
             <button className="download-btn" onClick={handleDownload} style={{ marginRight: '10px' }}>
               Download Word (.docx)
             </button>
 
+            {/* PPT BUTTON */}
             <button className="download-btn ppt-btn" onClick={handleDownloadPPT}>
               Download PowerPoint (.pptx)
             </button>

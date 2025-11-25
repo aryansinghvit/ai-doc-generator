@@ -1,21 +1,44 @@
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
+from fastapi.security import OAuth2PasswordBearer # <--- NEW
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from docx import Document
 from pptx import Presentation
 from io import BytesIO
+from jose import jwt  # <--- NEW
 
 # Custom Imports
 import models
-import security  # <--- NEW
-from database import engine, get_db
+import security
 import ai_service
+from database import engine, get_db
 
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
+
+def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(token, security.SECRET_KEY, algorithms=[security.ALGORITHM])
+        email: str = payload.get("sub")
+        if email is None:
+            raise credentials_exception
+    except:
+        raise credentials_exception
+
+    user = db.query(models.User).filter(models.User.email == email).first()
+    if user is None:
+        raise credentials_exception
+    return user
 
 # --- NEW SECTION: ALLOW FRONTEND CONNECTION ---
 app.add_middleware(
@@ -62,6 +85,8 @@ def generate_text(request: GenerateRequest):
 class ExportRequest(BaseModel):
     content: str
 
+
+
 @app.post("/export/docx")
 def export_docx(request: ExportRequest):
     # 1. Create a new Word Document in memory
@@ -81,7 +106,10 @@ def export_docx(request: ExportRequest):
         headers={"Content-Disposition": "attachment; filename=generated_doc.docx"}
     )
 
-
+class ProjectSaveRequest(BaseModel):
+    title: str
+    content: str
+    doc_type: str
 
 # For PowerPoint export
 
@@ -150,3 +178,32 @@ def login_for_access_token(user: UserLogin, db: Session = Depends(get_db)):
     access_token = security.create_access_token(data={"sub": db_user.email})
     
     return {"access_token": access_token, "token_type": "bearer"}
+
+@app.post("/projects")
+def save_project(
+    project: ProjectSaveRequest, 
+    db: Session = Depends(get_db), 
+    current_user: models.User = Depends(get_current_user)
+):
+    # 1. Create the Project Entry
+    new_proj = models.Project(
+        title=project.title, 
+        doc_type=project.doc_type, 
+        user_id=current_user.id
+    )
+    db.add(new_proj)
+    db.commit()
+    db.refresh(new_proj)
+
+    # 2. Save the Content as a Section
+    # (For simplicity, we save the whole text as Section 1)
+    new_section = models.DocumentSection(
+        project_id=new_proj.id,
+        sequence_order=1,
+        heading="Main Content",
+        content=project.content
+    )
+    db.add(new_section)
+    db.commit()
+
+    return {"message": "Project Saved Successfully!", "project_id": new_proj.id}
