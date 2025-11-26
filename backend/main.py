@@ -65,6 +65,15 @@ class Token(BaseModel):
     access_token: str
     token_type: str
 
+class FeedbackRequest(BaseModel):
+    is_liked: bool
+    is_disliked: bool
+    user_notes: str
+
+class RefineRequest(BaseModel):
+    content: str
+    instruction: str # e.g., "Make it professional"
+
 
 class GenerateRequest(BaseModel):
     topic: str
@@ -291,3 +300,34 @@ def delete_project(project_id: int, db: Session = Depends(get_db), current_user:
     db.delete(project)
     db.commit()
     return {"message": "Project deleted"}
+
+# --- FEEDBACK & REFINEMENT ENDPOINTS ---
+
+@app.put("/projects/{project_id}/feedback")
+def update_feedback(project_id: int, feedback: FeedbackRequest, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+    # Find the main section of the project
+    section = db.query(models.DocumentSection).join(models.Project).filter(
+        models.Project.id == project_id,
+        models.Project.user_id == current_user.id
+    ).first()
+    
+    if not section:
+        raise HTTPException(status_code=404, detail="Project not found")
+    
+    # Update fields
+    section.is_liked = feedback.is_liked
+    section.is_disliked = feedback.is_disliked
+    section.user_notes = feedback.user_notes
+    db.commit()
+    return {"message": "Feedback saved"}
+
+@app.post("/refine")
+def refine_text(request: RefineRequest):
+    # Ask AI to rewrite the text based on instruction
+    prompt = (
+        f"Original Text: '{request.content}'\n\n"
+        f"Instruction: {request.instruction}\n\n"
+        f"Rewrite the text following the instruction. Keep it detailed."
+    )
+    refined_text = ai_service.generate_document_content(prompt)
+    return {"content": refined_text}

@@ -10,16 +10,19 @@ function Dashboard() {
   const [loading, setLoading] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   
-  // NEW: State for the History List
+  // FEEDBACK STATE
+  const [currentProjectId, setCurrentProjectId] = useState(null)
+  const [liked, setLiked] = useState(false)
+  const [disliked, setDisliked] = useState(false)
+  const [comment, setComment] = useState("")
+  const [refineInstruction, setRefineInstruction] = useState("")
+
   const [projects, setProjects] = useState([])
-  const [menuOpenId, setMenuOpenId] = useState(null) // For the 3-dot menu
+  const [menuOpenId, setMenuOpenId] = useState(null)
   
   const navigate = useNavigate();
 
-  // 1. FETCH PROJECTS ON LOAD
-  useEffect(() => {
-    fetchProjects();
-  }, []);
+  useEffect(() => { fetchProjects(); }, []);
 
   const fetchProjects = async () => {
     const token = localStorage.getItem("token");
@@ -29,116 +32,92 @@ function Dashboard() {
         headers: { Authorization: `Bearer ${token}` }
       });
       setProjects(response.data);
-    } catch (error) {
-      console.error("Failed to load history");
-    }
+    } catch (error) { console.error("Failed to load history"); }
   }
 
-  // 2. LOAD A SAVED PROJECT
   const loadProject = (project) => {
     setTopic(project.title);
     setResult(project.content);
-    setIsEditing(false); // Open in preview mode
+    setCurrentProjectId(project.id);
+    setLiked(false);
+    setDisliked(false);
+    setComment("");
+    setIsEditing(false);
   }
 
-  // 3. DELETE PROJECT
   const handleDelete = async (e, projectId) => {
-    e.stopPropagation(); // Stop the click from loading the project
-    if(!confirm("Are you sure you want to delete this project?")) return;
-
+    e.stopPropagation();
+    if(!confirm("Delete this project?")) return;
     const token = localStorage.getItem("token");
     try {
       await axios.delete(`http://127.0.0.1:8000/projects/${projectId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      // Refresh the list
       fetchProjects();
-      // If we deleted the one currently open, clear the screen
       if (projects.find(p => p.id === projectId)?.title === topic) {
-        setTopic("");
-        setResult("");
+        setTopic(""); setResult(""); setCurrentProjectId(null);
       }
-    } catch (error) {
-      alert("Failed to delete");
-    }
+    } catch (error) { alert("Failed to delete"); }
   }
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    navigate("/");
-  }
+  const handleLogout = () => { localStorage.removeItem("token"); navigate("/"); }
 
   const handleGenerate = async () => {
     if (!topic) return;
     setLoading(true);
     setResult(""); 
     setIsEditing(false);
+    setCurrentProjectId(null);
     
     try {
-      const response = await axios.post("http://127.0.0.1:8000/generate", {
-        topic: topic
+      const response = await axios.post("http://127.0.0.1:8000/generate", { topic: topic });
+      setResult(response.data.content);
+    } catch (error) { setResult("Error connecting to server."); } 
+    finally { setLoading(false); }
+  }
+
+  const handleRefine = async () => {
+    if (!refineInstruction) return;
+    setLoading(true);
+    try {
+      const response = await axios.post("http://127.0.0.1:8000/refine", {
+        content: result,
+        instruction: refineInstruction
       });
       setResult(response.data.content);
-    } catch (error) {
-      console.error("Error:", error);
-      setResult("Error connecting to server.");
-    } finally {
-      setLoading(false);
-    }
+      setRefineInstruction(""); 
+    } catch (error) { alert("Refinement failed"); }
+    finally { setLoading(false); }
   }
 
   const handleSave = async () => {
     const token = localStorage.getItem("token");
-    if (!token) {
-      alert("You must be logged in to save!");
-      return;
-    }
+    if (!token) { alert("Login required!"); return; }
     try {
-      await axios.post("http://127.0.0.1:8000/projects", {
-        title: topic,
-        content: result,
-        doc_type: "docx"
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      alert("Project Saved Successfully!");
-      fetchProjects(); // Refresh the right sidebar
-    } catch (error) {
-      alert("Failed to save.");
-    }
+      const response = await axios.post("http://127.0.0.1:8000/projects", {
+        title: topic, content: result, doc_type: "docx"
+      }, { headers: { Authorization: `Bearer ${token}` } });
+      
+      setCurrentProjectId(response.data.project_id);
+      
+      if (liked || disliked || comment) {
+        await axios.put(`http://127.0.0.1:8000/projects/${response.data.project_id}/feedback`, {
+          is_liked: liked, is_disliked: disliked, user_notes: comment
+        }, { headers: { Authorization: `Bearer ${token}` } });
+      }
+
+      alert("Project & Feedback Saved!");
+      fetchProjects();
+    } catch (error) { alert("Failed to save."); }
   }
 
-  const handleDownloadPDF = async () => {
+  const handleDownload = async (type) => {
     try {
-      const response = await axios.post("http://127.0.0.1:8000/export/pdf", { content: result }, { responseType: 'blob' });
+      const response = await axios.post(`http://127.0.0.1:8000/export/${type}`, { content: result }, { responseType: 'blob' });
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', `${topic || 'document'}.pdf`);
-      document.body.appendChild(link);
-      link.click();
-    } catch (error) { console.error(error); }
-  }
-
-  const handleDownload = async () => {
-    try {
-      const response = await axios.post("http://127.0.0.1:8000/export/docx", { content: result }, { responseType: 'blob' });
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `${topic || 'document'}.docx`);
-      document.body.appendChild(link);
-      link.click();
-    } catch (error) { console.error(error); }
-  }
-
-  const handleDownloadPPT = async () => {
-    try {
-      const response = await axios.post("http://127.0.0.1:8000/export/pptx", { content: result }, { responseType: 'blob' });
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `${topic || 'presentation'}.pptx`);
+      link.setAttribute('download', `${topic}.${type}`);
       document.body.appendChild(link);
       link.click();
     } catch (error) { console.error(error); }
@@ -151,24 +130,21 @@ function Dashboard() {
         <button onClick={handleLogout} className="logout-btn">Logout</button>
       </nav>
 
-      {/* MAIN CONTENT SPLIT: LEFT (WORK) vs RIGHT (HISTORY) */}
       <div className="main-layout">
-        
-        {/* --- LEFT SIDE: THE WORKSPACE --- */}
         <div className="workspace-area">
           <div className="dashboard-card hero-card">
             <h1>Create Professional Documents</h1>
-            <p className="subtitle">Enter a topic below and let AI write your report, essay, or presentation.</p>
-            
             <div className="input-group">
+              {/* FIXED PLACEHOLDER */}
               <input 
                 type="text" 
-                placeholder="What do you want to write about?" 
-                value={topic}
-                onChange={(e) => setTopic(e.target.value)}
+                placeholder="What do you want to write about? (e.g. Electric Vehicles)" 
+                value={topic} 
+                onChange={(e) => setTopic(e.target.value)} 
               />
+              {/* FIXED BUTTON TEXT */}
               <button className="generate-btn" onClick={handleGenerate} disabled={loading}>
-                {loading ? "Generating..." : "Generate Content"}
+                {loading ? "Generating Magic..." : "Generate Content"}
               </button>
             </div>
           </div>
@@ -176,77 +152,68 @@ function Dashboard() {
           {result && (
             <div className="dashboard-card result-card">
               <div className="result-header">
-                <h3>Generated Draft</h3>
-                <button 
-                  className="toggle-edit-btn"
-                  onClick={() => setIsEditing(!isEditing)}
-                >
+                <h3>Draft</h3>
+                <button className="toggle-edit-btn" onClick={() => setIsEditing(!isEditing)}>
                   {isEditing ? "👁️ Preview" : "✏️ Edit"}
                 </button>
               </div>
 
+              <div className="refine-bar">
+                <input 
+                  type="text" 
+                  placeholder="Ask AI to refine (e.g. 'Make it shorter', 'Add bullets')..." 
+                  value={refineInstruction}
+                  onChange={(e) => setRefineInstruction(e.target.value)}
+                />
+                <button onClick={handleRefine} disabled={loading}>✨ Refine</button>
+              </div>
+
               <div className="result-content-area">
                 {isEditing ? (
-                  <textarea 
-                    className="editor-textarea"
-                    value={result}
-                    onChange={(e) => setResult(e.target.value)} 
-                  />
+                  <textarea className="editor-textarea" value={result} onChange={(e) => setResult(e.target.value)} />
                 ) : (
-                  <div className="markdown-preview">
-                    <ReactMarkdown>{result}</ReactMarkdown>
-                  </div>
+                  <div className="markdown-preview"><ReactMarkdown>{result}</ReactMarkdown></div>
                 )}
               </div>
               
+              <div className="feedback-section">
+                <h4>Was this helpful?</h4>
+                <div className="feedback-buttons">
+                  <button className={`thumb-btn ${liked ? 'active' : ''}`} onClick={() => { setLiked(!liked); setDisliked(false); }}>👍 Like</button>
+                  <button className={`thumb-btn ${disliked ? 'active' : ''}`} onClick={() => { setDisliked(!disliked); setLiked(false); }}>👎 Dislike</button>
+                </div>
+                <textarea className="comment-box" placeholder="Add private notes or comments here..." value={comment} onChange={(e) => setComment(e.target.value)} />
+              </div>
+
               <div className="action-bar">
-                <button className="action-btn save" onClick={handleSave}>💾 Save</button>
+                <button className="action-btn save" onClick={handleSave}>💾 Save All</button>
                 <div className="divider"></div>
-                <button className="action-btn pdf" onClick={handleDownloadPDF}>📄 PDF</button>
-                <button className="action-btn doc" onClick={handleDownload}>📝 Word</button>
-                <button className="action-btn ppt" onClick={handleDownloadPPT}>📊 PPT</button>
+                <button className="action-btn pdf" onClick={() => handleDownload('pdf')}>📄 PDF</button>
+                <button className="action-btn doc" onClick={() => handleDownload('docx')}>📝 Word</button>
+                <button className="action-btn ppt" onClick={() => handleDownload('pptx')}>📊 PPT</button>
               </div>
             </div>
           )}
         </div>
 
-        {/* --- RIGHT SIDE: HISTORY SIDEBAR --- */}
         <div className="history-sidebar">
-          <h3>📂 Saved Projects</h3>
+          <h3>Saved Projects</h3>
           <div className="project-list">
-            {projects.length === 0 ? (
-              <p className="no-projects">No saved projects yet.</p>
-            ) : (
-              projects.map((proj) => (
-                <div 
-                  key={proj.id} 
-                  className={`project-item ${topic === proj.title ? 'active' : ''}`}
-                  onClick={() => loadProject(proj)}
-                >
-                  <span className="project-title">{proj.title}</span>
-                  
-                  {/* 3 DOT MENU */}
-                  <div className="menu-container" onClick={(e) => e.stopPropagation()}>
-                    <button 
-                      className="dots-btn"
-                      onClick={() => setMenuOpenId(menuOpenId === proj.id ? null : proj.id)}
-                    >
-                      ⋮
-                    </button>
-                    {menuOpenId === proj.id && (
-                      <div className="dropdown-menu">
-                        <button onClick={(e) => handleDelete(e, proj.id)} className="delete-option">
-                          🗑️ Delete
-                        </button>
-                      </div>
-                    )}
-                  </div>
+            {projects.map((p) => (
+              <div key={p.id} className={`project-item ${topic === p.title ? 'active' : ''}`} onClick={() => loadProject(p)}>
+                <span className="project-title">{p.title}</span>
+                <div className="menu-container" onClick={(e) => e.stopPropagation()}>
+                  <button className="dots-btn" onClick={() => setMenuOpenId(menuOpenId === p.id ? null : p.id)}>⋮</button>
+                  {menuOpenId === p.id && (
+                    <div className="dropdown-menu">
+                      <button onClick={(e) => handleDelete(e, p.id)} className="delete-option">🗑️ Delete</button>
+                    </div>
+                  )}
                 </div>
-              ))
-            )}
+              </div>
+            ))}
           </div>
         </div>
-
       </div>
     </div>
   )
